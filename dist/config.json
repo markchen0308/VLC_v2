@@ -1,0 +1,21 @@
+{
+    "account":"mark",
+    "passwd":"mark",
+
+    "webserverIp":"127.0.0.1",
+    "webserverPort": 80,
+   
+    "dbUser": "postgres", 
+    "dbHost": "localhost",
+    "dbName": "iot",
+    "dbPassword": "postgres",
+    "dbPort": 5432,
+
+    "socketWebServerIP":"localhost",
+    "scoketWebServerPort":10001,
+
+    "scoketModbusServerIP":"localhost",
+    "scoketModbusServerPort":10002,  
+
+    "gwLanName":"wlp3s0"
+}
