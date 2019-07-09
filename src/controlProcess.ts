@@ -1,5 +1,6 @@
 import { SocketWebServer } from './socketWebServer';
 import { SocketModbusServer } from './socketModbusServer';
+import { SocketRemoteClient } from './socketRemoteClient';
 import * as network from 'network';
 import * as DTCMD from './dataTypeCmd';
 import { PgControl } from './pgControl'
@@ -33,6 +34,7 @@ enum replyType {
 export class ControlProcess {
     webServer: SocketWebServer = new SocketWebServer();
     modbusServer: SocketModbusServer = new SocketModbusServer();
+    remoteClient: SocketRemoteClient = new SocketRemoteClient();
     pgCntrol: PgControl = new PgControl();
     GwIP: string;
     GwMAC: string;
@@ -137,6 +139,22 @@ export class ControlProcess {
                     Datetime: new Date().toLocaleString(),
                     devPkgCount: devPkg.length,
                     devPkgMember: devPkg
+                }
+
+                if (this.remoteClient.isRemoteServerHolding() ==true)//is remote server was connected
+                {
+                    let webPkg: iWebPkg = {};
+                    let gwInfoList: iGwInf[] = [];
+                    gwInfoList.push(gwInf);
+                    let gwPkg: iGwPkg = {
+                        GatewaySeqMin: gwInfoList[0].GatewaySeq,
+                        GatewaySeqMax: gwInfoList[0].GatewaySeq,
+                        DateTimeMin: gwInfoList[0].Datetime,
+                        DateTimeMax: gwInfoList[0].Datetime,
+                        GatewayHistoryCount: 1,
+                        GatewayHistoryMember: gwInfoList
+                    };
+                    this.remoteClient.sendMsg2Server(JSON.stringify(webPkg));
                 }
                 // console.dir(gwInf);//show 
                 this.saveGwInfDataInLimitQueue(gwInf, MaxDataQueueLength);//save in last n queue
@@ -292,6 +310,11 @@ export class ControlProcess {
             case webCmd.getDriver:
                 this.replyWebCmdGetDriverInfo(index, cmd);
                 break;
+
+            case webCmd.setClientServer:
+                console.log('get server start cmd')
+                this.replyWebCmdSetRemoteServer(cmd);
+                break
 
             case webCmd.postReset:
                 this.exeWebCmdPostReset();
@@ -660,6 +683,30 @@ export class ControlProcess {
         }
         else {//there is no driver in the netwrok
             this.replyWebseverFail(replyType.failNoDriver);//response no driver
+        }
+
+    }
+    //---------------------------------------------------------------------------------
+    replyWebCmdSetRemoteServer(cmd: DTCMD.iCmd) {
+
+        let webPkg: iWebPkg = {};
+
+        if (this.remoteClient.isRemoteServerHolding() == false) {
+            console.log("test001")
+            let ip: string = cmd.cmdData.serverIP;
+            let port: number = cmd.cmdData.serverPort;
+            webPkg.reply = 1;
+            let msg: string = "Starting client to connect server."
+            webPkg.msg = msg;
+            this.webServer.sendMessage(JSON.stringify(webPkg));
+            this.remoteClient.setClientSeverInfo(ip, port);//save ip and port
+            this.remoteClient.configureClient();//connect server
+        }
+        else {
+            webPkg.reply = 0;
+            let msg: string = "Client has been connected to server."
+            webPkg.msg = msg;
+            this.webServer.sendMessage(JSON.stringify(webPkg));
         }
 
     }

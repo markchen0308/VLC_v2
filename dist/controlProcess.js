@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const socketWebServer_1 = require("./socketWebServer");
 const socketModbusServer_1 = require("./socketModbusServer");
+const socketRemoteClient_1 = require("./socketRemoteClient");
 const network = require("network");
 const pgControl_1 = require("./pgControl");
 const dataTypeModbus_1 = require("./dataTypeModbus");
@@ -26,6 +27,7 @@ class ControlProcess {
     constructor() {
         this.webServer = new socketWebServer_1.SocketWebServer();
         this.modbusServer = new socketModbusServer_1.SocketModbusServer();
+        this.remoteClient = new socketRemoteClient_1.SocketRemoteClient();
         this.pgCntrol = new pgControl_1.PgControl();
         this.drivers = [];
         this.gwSeq = 0;
@@ -107,6 +109,21 @@ class ControlProcess {
                     devPkgCount: devPkg.length,
                     devPkgMember: devPkg
                 };
+                if (this.remoteClient.isRemoteServerHolding() == true) //is remote server was connected
+                 {
+                    let webPkg = {};
+                    let gwInfoList = [];
+                    gwInfoList.push(gwInf);
+                    let gwPkg = {
+                        GatewaySeqMin: gwInfoList[0].GatewaySeq,
+                        GatewaySeqMax: gwInfoList[0].GatewaySeq,
+                        DateTimeMin: gwInfoList[0].Datetime,
+                        DateTimeMax: gwInfoList[0].Datetime,
+                        GatewayHistoryCount: 1,
+                        GatewayHistoryMember: gwInfoList
+                    };
+                    this.remoteClient.sendMsg2Server(JSON.stringify(webPkg));
+                }
                 // console.dir(gwInf);//show 
                 this.saveGwInfDataInLimitQueue(gwInf, MaxDataQueueLength); //save in last n queue
                 this.GatewayHistoryMember.push(gwInf); //save to history memory
@@ -233,6 +250,10 @@ class ControlProcess {
                 break;
             case dataTypeModbus_1.webCmd.getDriver:
                 this.replyWebCmdGetDriverInfo(index, cmd);
+                break;
+            case dataTypeModbus_1.webCmd.setClientServer:
+                console.log('get server start cmd');
+                this.replyWebCmdSetRemoteServer(cmd);
                 break;
             case dataTypeModbus_1.webCmd.postReset:
                 this.exeWebCmdPostReset();
@@ -577,6 +598,27 @@ class ControlProcess {
         }
         else { //there is no driver in the netwrok
             this.replyWebseverFail(replyType.failNoDriver); //response no driver
+        }
+    }
+    //---------------------------------------------------------------------------------
+    replyWebCmdSetRemoteServer(cmd) {
+        let webPkg = {};
+        if (this.remoteClient.isRemoteServerHolding() == false) {
+            console.log("test001");
+            let ip = cmd.cmdData.serverIP;
+            let port = cmd.cmdData.serverPort;
+            webPkg.reply = 1;
+            let msg = "Starting client to connect server.";
+            webPkg.msg = msg;
+            this.webServer.sendMessage(JSON.stringify(webPkg));
+            this.remoteClient.setClientSeverInfo(ip, port); //save ip and port
+            this.remoteClient.configureClient(); //connect server
+        }
+        else {
+            webPkg.reply = 0;
+            let msg = "Client has been connected to server.";
+            webPkg.msg = msg;
+            this.webServer.sendMessage(JSON.stringify(webPkg));
         }
     }
     //---------------------------------------------------------------------------------

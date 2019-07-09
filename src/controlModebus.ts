@@ -19,8 +19,8 @@ import { resolve } from 'path';
 let timeFunctionInterval: number = 5;
 let maxLightIdKeep: number = 62;//max acount of light in a gw loop
 let pollingTimeStep: number = 10;//polling time per light
-let driverResPonseTimeout=5;
-let nextCmdDleayTime=1;
+let driverResPonseTimeout = 5;
+let nextCmdDleayTime = 1;
 let limitHandshake: number = 3;//max. acount of handshakeing
 
 enum modbusErr {
@@ -37,7 +37,7 @@ export class ControlModbus {
 
     masterRs485: ModbusRTU = new ModbusRTU();
     drivers: iDriver[] = [];
-    devPkgMember: iDevPkg[] = [];
+    devPkgMember: DTMODBUS.iDevPkgV2[] = [];
     pollingTime: number = 1000;
 
     flagServerStatus: boolean = false;
@@ -683,7 +683,7 @@ export class ControlModbus {
         let driversKeep: iDriver[] = [];
         let id = 0;
         let handshakeCount: number = 0;
-        let flagFounddDriver:boolean=false;
+        let flagFounddDriver: boolean = false;
         for (let i: number = 0; i < maxLightIdKeep; i++) {
             id += 1;
             for (let j: number = 1; j <= limitHandshake; j++) {
@@ -696,29 +696,26 @@ export class ControlModbus {
 
                 await this.getLightInformation(id)
                     .then((value) => {//value is driverInfo
-                        console.log('Driver ' + id.toString() + ' was found' );
-                        flagFounddDriver=true;
+                        console.log('Driver ' + id.toString() + ' was found');
+                        flagFounddDriver = true;
                         driversKeep.push(value);//save driver
-                        
+
                     })
                     .catch((errorMsg) => {
                         console.log('Driver ' + id + ' response error : ' + errorMsg);
-                        flagFounddDriver=false;
+                        flagFounddDriver = false;
                     });
-                
-                if(flagFounddDriver)
-                {
-                    flagFounddDriver=false;
+
+                if (flagFounddDriver) {
+                    flagFounddDriver = false;
                     break;//jump out for loop and find next driver
                 }
-                else
-                {
-                    if(j >= limitHandshake)
-                    {
+                else {
+                    if (j >= limitHandshake) {
                         break;//jump out for loop and find next driver
                     }
                     await this.delay(nextCmdDleayTime);//read next light after 5msec
-                }   
+                }
             }
         }
 
@@ -733,7 +730,7 @@ export class ControlModbus {
         let id: number = 0;
         let driverIDs: number[] = [];
         let handshakeCount: number = 0;
-        let flagFounddDriver:boolean=false;
+        let flagFounddDriver: boolean = false;
         //backup driver ID
         this.drivers.forEach(driver => {
             driverIDs.push(driver.lightID);
@@ -751,29 +748,26 @@ export class ControlModbus {
 
                 await this.getLightInformation(id)
                     .then((value) => {//value is driverInfo
-                        console.log('Driver ' + id.toString() + ' was found' );
-                        flagFounddDriver=true;
+                        console.log('Driver ' + id.toString() + ' was found');
+                        flagFounddDriver = true;
                         driversKeep.push(value);//save driver
-                        
+
                     })
                     .catch((errorMsg) => {
                         console.log('Driver ' + id + ' response error : ' + errorMsg);
-                        flagFounddDriver=false;
+                        flagFounddDriver = false;
                     });
-                
-                if(flagFounddDriver)
-                {
-                    flagFounddDriver=false;
+
+                if (flagFounddDriver) {
+                    flagFounddDriver = false;
                     break;//jump out for loop and find next driver
                 }
-                else
-                {
-                    if(j >= limitHandshake)
-                    {
+                else {
+                    if (j >= limitHandshake) {
                         break;//jump out for loop and find next driver
                     }
                     await this.delay(nextCmdDleayTime);//read next light after 5msec
-                }   
+                }
             }
         }
 
@@ -867,35 +861,37 @@ export class ControlModbus {
     //get device content
     paserProtocol2Dev(recLightID: number, u8: Uint8Array): iDevInfo {
 
-        let dev: iDevInfo = {};
-        dev.type = u8[devAddress.type];
-        dev.seq = u8[devAddress.seq];
+        let dev: DTMODBUS.iDevInfoV2 = {};
+        dev.type = u8[DTMODBUS.devAddressV2.type];
+        dev.seq = u8[DTMODBUS.devAddressV2.seq];
         dev.mac = '';
         for (let i: number = 5; i >= 0; i--) {
-            if (u8[devAddress.Mac + i] < 10) {
-                dev.mac += "0" + u8[devAddress.Mac + i].toString(16);
+            if (u8[DTMODBUS.devAddressV2.Mac + i] < 10) {
+                dev.mac += "0" + u8[DTMODBUS.devAddressV2.Mac + i].toString(16);
             }
             else {
-                dev.mac += u8[devAddress.Mac + i].toString(16);
+                dev.mac += u8[DTMODBUS.devAddressV2.Mac + i].toString(16);
             }
             if (i != 0) {
                 dev.mac += ":";
             }
 
         }
-        dev.lId1 = u8[devAddress.lId1];
-        dev.lId2 = u8[devAddress.lId2];
-        dev.br1 = this.byte2Number(u8[devAddress.br1 + 1], u8[devAddress.br1]);
-        dev.br2 = this.byte2Number(u8[devAddress.br2 + 1], u8[devAddress.br2]);
-        dev.rssi = -1 * this.byte2Number(u8[devAddress.rssi + 1], u8[devAddress.rssi]);
-        dev.Gx = u8[devAddress.Gx];
-        dev.Gy = u8[devAddress.Gy];
-        dev.Gz = u8[devAddress.Gz];
+        dev.lid1 = u8[DTMODBUS.devAddressV2.lid1];
+        dev.lid2 = u8[DTMODBUS.devAddressV2.lid2];
+        dev.lid3 = u8[DTMODBUS.devAddressV2.lid3];
+        dev.lid4 = u8[DTMODBUS.devAddressV2.lid4];
+        dev.lid5 = u8[DTMODBUS.devAddressV2.lid5];
+        dev.br1 = this.byte2Number(u8[DTMODBUS.devAddressV2.br1 + 1], u8[DTMODBUS.devAddressV2.br1]);
+        dev.br2 = this.byte2Number(u8[DTMODBUS.devAddressV2.br2 + 1], u8[DTMODBUS.devAddressV2.br2]);
+        dev.br3 = this.byte2Number(u8[DTMODBUS.devAddressV2.br3 + 1], u8[DTMODBUS.devAddressV2.br3]);
+        dev.br4 = this.byte2Number(u8[DTMODBUS.devAddressV2.br4 + 1], u8[DTMODBUS.devAddressV2.br4]);
+        dev.br5 = this.byte2Number(u8[DTMODBUS.devAddressV2.br5 + 1], u8[DTMODBUS.devAddressV2.br5]);
+        dev.rssi = -1 * this.byte2Number(u8[DTMODBUS.devAddressV2.rssi + 1], u8[DTMODBUS.devAddressV2.rssi]);
         dev.batPow = u8[devAddress.batPow];
-        dev.labelX = u8[devAddress.labelX];
-        dev.labelY = u8[devAddress.labelY];
-        dev.labelH = this.byte2Number(u8[devAddress.labelH + 1], u8[devAddress.labelH]);
+        dev.label = u8[DTMODBUS.devAddressV2.label];
         dev.recLightID = recLightID;
+
         switch (u8[0]) {
             case typesDevice.tag:
                 dev.other = {};
@@ -914,89 +910,92 @@ export class ControlModbus {
 
     //--------------------------------------------------------------------------------------------------
     //group device by device mac
-    sortDev(dev: iDevInfo) {
+    sortDev(dev: DTMODBUS.iDevInfoV2) {
         let isContainDevice: boolean = false;
         if (this.devPkgMember.length > 0) //devPkgMember is not empty
         {
             for (let i: number = 0; i < this.devPkgMember.length; i++) {
                 if (this.devPkgMember[i].mac == dev.mac) //does devPkgMember contain device?
                 {
+                    isContainDevice = true;//mark
                     if (dev.seq == this.devPkgMember[i].seq)//seq is the same
                     {
                         this.devPkgMember[i].rxLightCount += 1;
-                        this.devPkgMember[i].rxLightInfo.push({ recLightID: dev.recLightID, rssi: dev.rssi });//save rxLightInfo of device into deviceInfoArry
-                        isContainDevice = true;//mark 
+                        this.devPkgMember[i].rxLightInfo.push({ recLightID: dev.recLightID, rssi: dev.rssi });//save rxLightInfo of device into deviceInfoArry 
                         break;//break the loop
                     }
                     else if ((dev.seq > this.devPkgMember[i].seq))//dev.seq is laster than this.devPkgMember[i].seq
                     {
                         //update laster device information
-                        this.devPkgMember[i].lId1 = dev.lId1;
-                        this.devPkgMember[i].lId2 = dev.lId2;
                         this.devPkgMember[i].seq = dev.seq;
                         this.devPkgMember[i].mac = dev.mac;
+                        this.devPkgMember[i].lid1 = dev.lid1;
+                        this.devPkgMember[i].lid2 = dev.lid2;
+                        this.devPkgMember[i].lid3 = dev.lid3;
+                        this.devPkgMember[i].lid4 = dev.lid4;
+                        this.devPkgMember[i].lid5 = dev.lid5;
                         this.devPkgMember[i].br1 = dev.br1;
                         this.devPkgMember[i].br2 = dev.br2;
-                        this.devPkgMember[i].Gx = dev.Gx;
-                        this.devPkgMember[i].Gy = dev.Gy;
-                        this.devPkgMember[i].Gz = dev.Gz;
+                        this.devPkgMember[i].br3 = dev.br3;
+                        this.devPkgMember[i].br4 = dev.br4;
+                        this.devPkgMember[i].br5 = dev.br5;
                         this.devPkgMember[i].batPow = dev.batPow;
-                        this.devPkgMember[i].labelX = dev.labelX;
-                        this.devPkgMember[i].labelY = dev.labelY;
-                        this.devPkgMember[i].labelH = dev.labelH;
+                        this.devPkgMember[i].label = dev.label;
                         this.devPkgMember[i].other = dev.other;
                         this.devPkgMember[i].rxLightCount = 1;
                         this.devPkgMember[i].rxLightInfo = [];
                         this.devPkgMember[i].rxLightInfo.length = 0;//clear former older information of rxLightInfo
                         this.devPkgMember[i].rxLightInfo.push({ recLightID: dev.recLightID, rssi: dev.rssi }); //update laster rxLightInfo
-                        isContainDevice = true;//mark 
                         break;//break the loop
                     }
-                    else {
-                        if ((this.devPkgMember[i].seq - dev.seq) > 200) {
-                            //update laster device information
-                            this.devPkgMember[i].lId1 = dev.lId1;
-                            this.devPkgMember[i].lId2 = dev.lId2;
-                            this.devPkgMember[i].seq = dev.seq;
-                            this.devPkgMember[i].mac = dev.mac;
-                            this.devPkgMember[i].br1 = dev.br1;
-                            this.devPkgMember[i].br2 = dev.br2;
-                            this.devPkgMember[i].Gx = dev.Gx;
-                            this.devPkgMember[i].Gy = dev.Gy;
-                            this.devPkgMember[i].Gz = dev.Gz;
-                            this.devPkgMember[i].batPow = dev.batPow;
-                            this.devPkgMember[i].labelX = dev.labelX;
-                            this.devPkgMember[i].labelY = dev.labelY;
-                            this.devPkgMember[i].labelH = dev.labelH;
-                            this.devPkgMember[i].other = dev.other;
-                            this.devPkgMember[i].rxLightCount = 1;
-                            this.devPkgMember[i].rxLightInfo = [];
-                            this.devPkgMember[i].rxLightInfo.length = 0;//clear former older information of rxLightInfo
-                            this.devPkgMember[i].rxLightInfo.push({ recLightID: dev.recLightID, rssi: dev.rssi }); //update laster rxLightInfo
-                            isContainDevice = true;//mark 
-                            break;//break the loop
-                        }
+                    else if ((this.devPkgMember[i].seq - dev.seq) > 250) {
+                        //update laster device information
+                        this.devPkgMember[i].seq = dev.seq;
+                        this.devPkgMember[i].mac = dev.mac;
+                        this.devPkgMember[i].lid1 = dev.lid1;
+                        this.devPkgMember[i].lid2 = dev.lid2;
+                        this.devPkgMember[i].lid3 = dev.lid3;
+                        this.devPkgMember[i].lid4 = dev.lid4;
+                        this.devPkgMember[i].lid5 = dev.lid5;
+                        this.devPkgMember[i].br1 = dev.br1;
+                        this.devPkgMember[i].br2 = dev.br2;
+                        this.devPkgMember[i].br3 = dev.br3;
+                        this.devPkgMember[i].br4 = dev.br4;
+                        this.devPkgMember[i].br5 = dev.br5;
+                        this.devPkgMember[i].batPow = dev.batPow;
+                        this.devPkgMember[i].label = dev.label;
+                        this.devPkgMember[i].other = dev.other;
+                        this.devPkgMember[i].rxLightCount = 1;
+                        this.devPkgMember[i].rxLightInfo = [];
+                        this.devPkgMember[i].rxLightInfo.length = 0;//clear former older information of rxLightInfo
+                        this.devPkgMember[i].rxLightInfo.push({ recLightID: dev.recLightID, rssi: dev.rssi }); //update laster rxLightInfo 
+                        break;//break the loop
                     }
+                  
+
                 }
             }
 
             if (isContainDevice == false) //devPkgMember does not contain device
             {
-                let devPkg: iDevPkg = {};
+                let devPkg: DTMODBUS.iDevPkgV2 = {};
                 devPkg.type = dev.type;
                 devPkg.seq = dev.seq;
                 devPkg.mac = dev.mac;
-                devPkg.lId1 = dev.lId1;
-                devPkg.lId2 = dev.lId2;
+                devPkg.lid1 = dev.lid1;
+                devPkg.lid2 = dev.lid2;
+                devPkg.lid3 = dev.lid3;
+                devPkg.lid4 = dev.lid4;
+                devPkg.lid5 = dev.lid5;
                 devPkg.br1 = dev.br1;
                 devPkg.br2 = dev.br2;
-                devPkg.Gx = dev.Gx;
-                devPkg.Gy = dev.Gy;
-                devPkg.Gz = dev.Gz;
+                devPkg.br3 = dev.br3;
+                devPkg.br4 = dev.br4;
+                devPkg.br5 = dev.br5;
                 devPkg.batPow = dev.batPow;
-                devPkg.labelX = dev.labelX;
-                devPkg.labelY = dev.labelY;
-                devPkg.labelH = dev.labelH;
+                devPkg.label = dev.label;
+                devPkg.other = dev.other;
+                devPkg.batPow = dev.batPow;
                 devPkg.other = dev.other;
                 devPkg.rxLightCount = 1;
                 devPkg.rxLightInfo = [];
@@ -1007,21 +1006,22 @@ export class ControlModbus {
         }
         else   //devPkgMember is empty, 
         {
-            let devPkg: iDevPkg = {};
+            let devPkg: DTMODBUS.iDevPkgV2 = {};
             devPkg.type = dev.type;
             devPkg.seq = dev.seq;
             devPkg.mac = dev.mac;
-            devPkg.lId1 = dev.lId1;
-            devPkg.lId2 = dev.lId2;
+            devPkg.lid1 = dev.lid1;
+            devPkg.lid2 = dev.lid2;
+            devPkg.lid3 = dev.lid3;
+            devPkg.lid4 = dev.lid4;
+            devPkg.lid5 = dev.lid5;
             devPkg.br1 = dev.br1;
             devPkg.br2 = dev.br2;
-            devPkg.Gx = dev.Gx;
-            devPkg.Gy = dev.Gy;
-            devPkg.Gz = dev.Gz;
+            devPkg.br3 = dev.br3;
+            devPkg.br4 = dev.br4;
+            devPkg.br5 = dev.br5;
             devPkg.batPow = dev.batPow;
-            devPkg.labelX = dev.labelX;
-            devPkg.labelY = dev.labelY;
-            devPkg.labelH = dev.labelH;
+            devPkg.label = dev.label;
             devPkg.other = dev.other;
             devPkg.rxLightCount = 1;
             devPkg.rxLightInfo = [];

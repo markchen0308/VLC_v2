@@ -2,6 +2,8 @@
     "account":"mark",
     "passwd":"mark",
 
+
+
     "webserverIp":"127.0.0.1",
     "webserverPort": 80,
    
@@ -16,6 +18,10 @@
 
     "scoketModbusServerIP":"localhost",
     "scoketModbusServerPort":10002,  
+
+    "socketRemoteServerIP":"127.0.0.1",
+    "socketRemoteServerPort":10003,
+
 
     "gwLanName":"wlp3s0"
 }
