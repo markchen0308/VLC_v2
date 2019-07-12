@@ -31,16 +31,13 @@ class SocketRemoteClient {
     }
     //-----------------------------------------------------------------------------------
     configureClient() {
-        console.log('configure');
-        console.log(this.socketRemoteServerPort);
-        console.log(this.socketRemoteServerIP);
         this.socketRemoteClient = Net.connect(this.socketRemoteServerPort, this.socketRemoteServerIP, () => {
             //console.log(`modbusClient connected to: ${this.socketRemoteClient.address} :  ${this.socketRemoteClient.localPort}`);
-            console.log("modbusClient connected");
+            console.log("remote server connected at ");
             this.flagServerStatus = true;
             this.sendMsg2Server("Hello,I'm VLC client\n"); //sent cmd data to server
         });
-        this.socketRemoteClient.setEncoding('utf8');
+        //this.socketRemoteClient.setEncoding('utf8');
         this.socketRemoteClient.on('end', () => {
             console.log('modbusClient disconnected');
             this.flagServerStatus = false;
@@ -59,7 +56,7 @@ class SocketRemoteClient {
     }
     //-----------------------------------------------------------------------------------
     sendMsg2Server(msg) {
-        console.log("sent msg");
+        //console.log("sent msg")
         this.socketRemoteClient.write(msg);
     }
 }
