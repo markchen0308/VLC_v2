@@ -109,19 +109,25 @@ class ControlProcess {
                     devPkgCount: devPkg.length,
                     devPkgMember: devPkg
                 };
+                // console.log("get modbus data")
+                // console.log(gwInf)
                 if (this.remoteClient.isRemoteServerHolding() == true) //is remote server was connected
                  {
                     let webPkg = {};
-                    let gwInfoList = [];
+                    /*let gwInfoList: iGwInf[] = [];
                     gwInfoList.push(gwInf);
-                    let gwPkg = {
+                    let gwPkg: iGwPkg = {
                         GatewaySeqMin: gwInfoList[0].GatewaySeq,
                         GatewaySeqMax: gwInfoList[0].GatewaySeq,
                         DateTimeMin: gwInfoList[0].Datetime,
                         DateTimeMax: gwInfoList[0].Datetime,
                         GatewayHistoryCount: 1,
                         GatewayHistoryMember: gwInfoList
-                    };
+                    };*/
+                    webPkg.reply = 1;
+                    webPkg.msg = gwInf;
+                    //   console.log("parepare data to socket server:")
+                    //  console.log(webPkg)
                     this.remoteClient.sendMsg2Server(JSON.stringify(webPkg));
                 }
                 // console.dir(gwInf);//show 

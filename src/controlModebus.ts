@@ -14,6 +14,7 @@ import * as DTMODBUS from './dataTypeModbus';
 
 import { promises, lstat } from 'fs';
 import { resolve } from 'path';
+import { string } from 'pg-format';
 
 
 let timeFunctionInterval: number = 5;
@@ -180,7 +181,7 @@ export class ControlModbus {
             });
 
         //calculate polling time    
-        this.pollingTime = 1050 - this.drivers.length * pollingTimeStep;
+        this.pollingTime = 500 - this.drivers.length * pollingTimeStep;
         this.fPollingEn = true;//enable polling drivers
 
 
@@ -229,7 +230,7 @@ export class ControlModbus {
         await this.delay(10);
         this.devPkgMember.length = 0;//clear devPkgMember
         this.devPkgMember = [];
-        console.log("polling")
+        
         await this.pollingLocationInfo();//ask input register location data
         this.timeRunCmd = 10;
         // }
@@ -547,6 +548,7 @@ export class ControlModbus {
                 .then((value) => {
                     //console.dir(value)
                     //parse array and sort device
+
                     this.sortDeviceTable(this.drivers[i].lightID, value);//get sort of device package array,devPkgMember
                 })
                 .catch((err) => {
@@ -574,9 +576,10 @@ export class ControlModbus {
                 //send location information to controlprocess
 
                 this.sendModbusMessage2Server(cmd);//sent device package to server 
-                this.devPkgMember.forEach(item => {
-                    console.dir(item);
-                });
+                console.log(cmd)
+                //this.devPkgMember.forEach(item => {
+                //    console.dir(item);
+                //});
 
                 resolve(true);
             }
@@ -598,7 +601,7 @@ export class ControlModbus {
 
             this.masterRs485.readInputRegisters(inputregisterAddress.countReadableRegister, readCount)
                 .then((value) => {
-
+                    
                     len = value[0];//record data length
                     if (len >= 0) {
                         // console.log("len="+len)
@@ -647,6 +650,7 @@ export class ControlModbus {
                     if ((value > 0) && (value < 255))//length>0
                     {
                         registerLen = value / 2;//register length=byte length /2
+
                         setTimeout(() => {
                             //read device location data after timeFunctionInterval,return register array
                             this.getDevicRegisterData(lightID, registerLen)
@@ -860,6 +864,14 @@ export class ControlModbus {
     //-----------------------------------------------------------------------------
     //get device content
     paserProtocol2Dev(recLightID: number, u8: Uint8Array): iDevInfo {
+        
+       // let hex_data:string = Buffer.from(u8).toString('hex');
+    
+        //console.log('data len=');
+        //console.log(u8.length);
+        //console.log('hex data=');
+        //console.log(hex_data);
+
 
         let dev: DTMODBUS.iDevInfoV2 = {};
         dev.type = u8[DTMODBUS.devAddressV2.type];
@@ -888,7 +900,7 @@ export class ControlModbus {
         dev.br4 = this.byte2Number(u8[DTMODBUS.devAddressV2.br4 + 1], u8[DTMODBUS.devAddressV2.br4]);
         dev.br5 = this.byte2Number(u8[DTMODBUS.devAddressV2.br5 + 1], u8[DTMODBUS.devAddressV2.br5]);
         dev.rssi = -1 * this.byte2Number(u8[DTMODBUS.devAddressV2.rssi + 1], u8[DTMODBUS.devAddressV2.rssi]);
-        dev.batPow = u8[devAddress.batPow];
+        dev.batPow = u8[DTMODBUS.devAddressV2.batPow];
         dev.label = u8[DTMODBUS.devAddressV2.label];
         dev.recLightID = recLightID;
 
@@ -905,6 +917,9 @@ export class ControlModbus {
                 dev.other = other;
                 break;
         }
+
+       // console.log("get dev")
+        //console.log(dev)
         return dev;
     }
 
@@ -1034,7 +1049,11 @@ export class ControlModbus {
     //get device table
     sortDeviceTable(recLightID: number, num: number[]) {
         //let devInfo: iDevInfo[] = [];
+        //let read_data:string = Buffer.from(num).toString('hex');
+        
         let matrix: Uint8Array[] = this.getNumber2Uint8Matrix(num);//convert number to byte
+        //let read_hex_data:string = Buffer.from(matrix).toString('hex');
+     
         matrix.forEach(item => {
             let dev: iDevInfo = this.paserProtocol2Dev(recLightID, item);//parse device information
             //console.dir(dev)

@@ -54,7 +54,7 @@ export class SocketRemoteClient {
 
 
         this.socketRemoteClient.on('end', () => {
-            console.log('modbusClient disconnected');
+            console.log('remote client disconnected');
             this.flagServerStatus = false;
         });
 

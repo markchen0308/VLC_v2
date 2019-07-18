@@ -138,7 +138,7 @@ class ControlModbus {
             }
         });
         //calculate polling time    
-        this.pollingTime = 1050 - this.drivers.length * pollingTimeStep;
+        this.pollingTime = 500 - this.drivers.length * pollingTimeStep;
         this.fPollingEn = true; //enable polling drivers
         if (this.drivers.length > 0) {
             console.log("enable BLE");
@@ -182,7 +182,6 @@ class ControlModbus {
         await this.delay(10);
         this.devPkgMember.length = 0; //clear devPkgMember
         this.devPkgMember = [];
-        console.log("polling");
         await this.pollingLocationInfo(); //ask input register location data
         this.timeRunCmd = 10;
         // }
@@ -479,9 +478,10 @@ class ControlModbus {
                 };
                 //send location information to controlprocess
                 this.sendModbusMessage2Server(cmd); //sent device package to server 
-                this.devPkgMember.forEach(item => {
-                    console.dir(item);
-                });
+                console.log(cmd);
+                //this.devPkgMember.forEach(item => {
+                //    console.dir(item);
+                //});
                 resolve(true);
             }
             else {
@@ -739,6 +739,11 @@ class ControlModbus {
     //-----------------------------------------------------------------------------
     //get device content
     paserProtocol2Dev(recLightID, u8) {
+        // let hex_data:string = Buffer.from(u8).toString('hex');
+        //console.log('data len=');
+        //console.log(u8.length);
+        //console.log('hex data=');
+        //console.log(hex_data);
         let dev = {};
         dev.type = u8[DTMODBUS.devAddressV2.type];
         dev.seq = u8[DTMODBUS.devAddressV2.seq];
@@ -765,7 +770,7 @@ class ControlModbus {
         dev.br4 = this.byte2Number(u8[DTMODBUS.devAddressV2.br4 + 1], u8[DTMODBUS.devAddressV2.br4]);
         dev.br5 = this.byte2Number(u8[DTMODBUS.devAddressV2.br5 + 1], u8[DTMODBUS.devAddressV2.br5]);
         dev.rssi = -1 * this.byte2Number(u8[DTMODBUS.devAddressV2.rssi + 1], u8[DTMODBUS.devAddressV2.rssi]);
-        dev.batPow = u8[dataTypeModbus_1.devAddress.batPow];
+        dev.batPow = u8[DTMODBUS.devAddressV2.batPow];
         dev.label = u8[DTMODBUS.devAddressV2.label];
         dev.recLightID = recLightID;
         switch (u8[0]) {
@@ -780,6 +785,8 @@ class ControlModbus {
                 dev.other = other;
                 break;
         }
+        // console.log("get dev")
+        //console.log(dev)
         return dev;
     }
     //--------------------------------------------------------------------------------------------------
@@ -905,7 +912,9 @@ class ControlModbus {
     //get device table
     sortDeviceTable(recLightID, num) {
         //let devInfo: iDevInfo[] = [];
+        //let read_data:string = Buffer.from(num).toString('hex');
         let matrix = this.getNumber2Uint8Matrix(num); //convert number to byte
+        //let read_hex_data:string = Buffer.from(matrix).toString('hex');
         matrix.forEach(item => {
             let dev = this.paserProtocol2Dev(recLightID, item); //parse device information
             //console.dir(dev)

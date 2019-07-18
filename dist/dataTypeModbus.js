@@ -34,7 +34,7 @@ var typesDevice;
 })(typesDevice = exports.typesDevice || (exports.typesDevice = {}));
 var deviceLength;
 (function (deviceLength) {
-    deviceLength[deviceLength["tagLen"] = 24] = "tagLen";
+    deviceLength[deviceLength["tagLen"] = 30] = "tagLen";
     deviceLength[deviceLength["dripStandLen"] = 30] = "dripStandLen"; //bytes
 })(deviceLength = exports.deviceLength || (exports.deviceLength = {}));
 var devAddress;
