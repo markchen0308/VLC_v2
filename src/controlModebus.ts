@@ -179,7 +179,7 @@ export class ControlModbus {
                     console.log("no device");
                 }
             });
-
+   
         //calculate polling time    
         this.pollingTime = 500 - this.drivers.length * pollingTimeStep;
         this.fPollingEn = true;//enable polling drivers

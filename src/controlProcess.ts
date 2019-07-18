@@ -187,7 +187,7 @@ export class ControlProcess {
                 }
             });
 
-        });
+        }); 
     }
     //------------------------------------------------------------------
     saveGwInfDataInLimitQueue(gwInf: iGwInf, maxLen: number) {
