@@ -697,7 +697,7 @@ export class ControlProcess {
         let webPkg: iWebPkg = {};
 
         if (this.remoteClient.isRemoteServerHolding() == false) {
-            console.log("test001")
+         
             let ip: string = cmd.cmdData.serverIP;
             let port: number = cmd.cmdData.serverPort;
             webPkg.reply = 1;
